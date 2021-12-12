@@ -2,6 +2,7 @@
 ### BitmapPixels.pas  - Lazarus module for direct access to pixels at TBitmap
 ---
 #### Example 1 - Invert colors (read and write)
+![example1.png](examples/example1.png)
 ```delphi
 procedure InvertColors(const Bitmap: TBitmap);
 var
@@ -28,6 +29,7 @@ begin
 end; 
 ```
 #### Example 2 - Half bitmap transparency (read and write, alpha)
+![example2.png](examples/example2.png)
 ```delphi
 procedure HalfAlpha(const Bitmap: TBitmap);
 var
@@ -51,7 +53,8 @@ begin
   end;
 end; 
 ```
-#### Example 3 - Make plasm effect on bitmap (write only)
+#### Example 3 - Make a plasm effect on bitmap (write only)
+![example3.png](examples/example3.png)
 ```delphi
 function MakePlasm(): TBitmap;
 var
@@ -82,6 +85,7 @@ begin
 end;
 ```
 #### Example 4 - Mix two bitmaps to one bitmap (read only, write only)
+![example4.png](examples/example4.png)
 ```delphi
 function Mix(const A, B: TBitmap): TBitmap;
   function Min(A, B: Integer): Integer;
