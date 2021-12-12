@@ -2,6 +2,52 @@
 ### BitmapPixels.pas  - Lazarus and Delphi module for direct access to pixels at TBitmap
 #### Worked on Windows(WinApi), Linux(GTK2, GTK3, Qt), OSX(Cocoa)
 
+Quite a popular question is how to get quick access to **TBitmap** pixels?  
+It is easy to do in **Delphi**, with **Scanline[]** property, due to the limited number of pixel formats, but rather difficult in **Lazarus**.   
+For example: https://wiki.freepascal.org/Fast_direct_pixel_access  
+
+I propose a small, single file, module **"BitmapPixels.pas"** that simplify work to just calling **TBitmapData.Map()** and **TBitmapData.Unmap()**.  
+You get an array of **$AARRGGBB** pixels in the **Data** property, and abilty set and get color of pixels using **SetPixel()/GetPixel()**.  
+
+```delphi
+var
+  Data: TBitmapData;
+  X, Y: Integer;
+  Pixel: TPixelRec;// for easy access to the channels 
+begin
+  // Reading the colors of the image into map "Data", width mode "ReadWrite", in the "False" alpha channel mode.
+  // The alpha channel will be set to 0 on every element of the array. ($00RRGGBB, $00RRGGBB, ...) 
+  Data.Map(Bitmap, TAccessMode.ReadWrite, False);
+  try
+    for Y := 0 to Data.Height - 1 do
+    begin
+      for X := 0 to Data.Width - 1 do
+      begin
+        // Read color at (X, Y) to Pixel record
+        Pixel := Data.GetPixel(X, Y);
+        // some changes of Pixel
+        Pixel.R := (Pixel.R + Pixel.G + Pixel.B) div 3;
+        Pixel.G := Pixel.R;
+        Pixel.B := Pixel.R;
+        // ...
+        // Write Pixel record to (X, Y) in map
+        Data.SetPixel(X, Y, Pixel);
+      end;
+    end;
+  finally
+    // Writing the map to the image.
+    // Since we have abandoned Alpha, the pixel format will be set to pf24bit.
+    Data.Unmap();
+  end;
+end;
+```
+
+**Key Features:**
+- cross-platform 
+- supports all TBitmap pixel formats for reading 
+- fast processing of popular formats in Windows/GTK/Qt/OSX 
+- can map any image as having an alpha channel or not (24bit/32bit)
+
 ---
 #### Example 1 - Invert colors (read and write)
 ![example1.png](examples/example1.png)
