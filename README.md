@@ -1,5 +1,5 @@
 # BitmapPixels
-### BitmapPixels.pas  - Lazarus module for direct access to pixels at TBitmap
+### BitmapPixels.pas  - Lazarus and Delphi module for direct access to pixels at TBitmap
 ---
 #### Example 1 - Invert colors (read and write)
 ![example1.png](examples/example1.png)
