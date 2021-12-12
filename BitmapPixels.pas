@@ -1,9 +1,13 @@
 // -----------------------------------------------------------------------------
-//                   Direct access for pixels at TBitmap unit
+//                              *** BitmapPixels ***
+//                      version 1.0, last update 12.12.2021
+// -----------------------------------------------------------------------------
+//                 Module for direct access to pixels at TBitmap
+//         Tested on Windows(WinApi), Linux(Gtk2, Qt5), OSX(Cocoa)
 // -----------------------------------------------------------------------------
 //
 // Latest verion of this unit aviable here:
-//   https://github.com/crazzzypeter/BitmapPixels/
+//    https://github.com/crazzzypeter/BitmapPixels/
 //
 //   GitHub: https://github.com/crazzzypeter/
 //   Twitch: https://www.twitch.tv/crazzzypeter/
@@ -137,7 +141,8 @@
 }
 {$ENDREGION}
 
-// Remember: GTK 3 and above is trash
+// Remember: GTK is trash
+
 unit BitmapPixels;
 
 {$IFDEF FPC}{$MODE DELPHI}{$ENDIF}
@@ -342,7 +347,11 @@ type
     {$ENDREGION}
   end;
 
-  function MakePixel(const R, G, B: Byte; A: Byte = 255): TPixel; inline;
+  function MakePixel(const R, G, B: Byte; const A: Byte = 255): TPixel; inline;
+  function PixelGetA(const Pixel: TPixel): Byte; inline;
+  function PixelGetR(const Pixel: TPixel): Byte; inline;
+  function PixelGetG(const Pixel: TPixel): Byte; inline;
+  function PixelGetB(const Pixel: TPixel): Byte; inline;
   {$IFDEF FPC}
   function FPColorToPixel(const FPColor: TFPColor): TPixel; inline;
   function PixelToFPColor(const Pixel: TPixel): TFPColor; inline;
@@ -357,9 +366,29 @@ uses
   IntfGraphics, GraphType;
 {$ENDIF}
 
-function MakePixel(const R, G, B: Byte; A: Byte): TPixel; inline;
+function MakePixel(const R, G, B: Byte; const A: Byte): TPixel; inline;
 begin
   Result := B or (G shl 8) or (R shl 16) or (A shl 24);
+end;
+
+function PixelGetA(const Pixel: TPixel): Byte; inline;
+begin
+  Result := (Pixel shr 24) and $FF;
+end;
+
+function PixelGetR(const Pixel: TPixel): Byte; inline;
+begin
+  Result := (Pixel shr 16) and $FF;
+end;
+
+function PixelGetG(const Pixel: TPixel): Byte; inline;
+begin
+  Result := (Pixel shr 8) and $FF;
+end;
+
+function PixelGetB(const Pixel: TPixel): Byte; inline;
+begin
+  Result := Pixel and $FF;
 end;
 
 {$IFDEF FPC}
@@ -445,7 +474,6 @@ var
   X, Y, Position: Integer;
 begin
   IntfImage := BitmapData.FBitmap.CreateIntfImage();
-  //IntfImage
   try
     Position := 0;
     for Y := 0 to BitmapData.FHeight - 1 do
@@ -1359,7 +1387,7 @@ end;
 
 constructor TPixelRec.Create(const R, G, B: Byte; const A: Byte);
 begin
-  Self := TPixelRec(B or (G shl 8) or (R shl 16) or (A shl 24));
+  Self.Color := B or (G shl 8) or (R shl 16) or (A shl 24);
 end;
 
 class operator TPixelRec.Implicit(Pixel: TPixel): TPixelRec;
