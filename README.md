@@ -1,6 +1,6 @@
 # BitmapPixels
 ### BitmapPixels.pas  - Lazarus and Delphi module for direct access to pixels at TBitmap
-#### Worked on Windows(WinApi), Linux(GTK2, GTK3, Qt), OSX(Cocoa)
+#### Worked on Windows(WinApi), Linux(GTK2, Qt5), OSX(Cocoa)
 
 Quite a popular question is how to get quick access to **TBitmap** pixels?  
 It is easy to do in **Delphi**, with **Scanline[]** property, due to the limited number of pixel formats, but rather difficult in **Lazarus**.   
