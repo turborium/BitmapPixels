@@ -1,5 +1,7 @@
 # BitmapPixels
 ### BitmapPixels.pas  - Lazarus and Delphi module for direct access to pixels at TBitmap
+#### Worked on Windows(WinApi), Linux(GTK2, GTK3, Qt), OSX(Cocoa)
+
 ---
 #### Example 1 - Invert colors (read and write)
 ![example1.png](examples/example1.png)
