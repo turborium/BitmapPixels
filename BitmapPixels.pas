@@ -438,7 +438,8 @@ begin
   Result:=
     (Color and $0000FF00) or
     ((Color shr 16) and $000000FF) or
-    ((Color shl 16) and $00FF0000);
+    ((Color shl 16) and $00FF0000) or
+    $FF000000;
 end;
 
 function PixelToColor(const Pixel: TPixel): TColor; inline;
