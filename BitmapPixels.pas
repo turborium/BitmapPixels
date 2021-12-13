@@ -1,9 +1,9 @@
 // -----------------------------------------------------------------------------
 //                              *** BitmapPixels ***
-//                      version 1.0, last update 12.12.2021
+//                      version 1.1, last update 13.12.2021
 // -----------------------------------------------------------------------------
 //                 Module for direct access to pixels at TBitmap
-//         Tested on Windows(WinApi), Linux(Gtk2, Qt5), OSX(Cocoa)
+//            Tested on Windows(WinApi), Linux(Gtk2, Qt5), OSX(Cocoa)
 // -----------------------------------------------------------------------------
 //
 // Latest verion of this unit aviable here:
@@ -15,7 +15,28 @@
 // YouTube?: https://www.youtube.com/channel/UCPQmDZGb5mZJ27ev9-t3bGQ/
 // Telegram: @crazzzypeter
 //
-//                          CrazzzyPeter 2021-2021 (c)
+// -----------------------------------------------------------------------------
+// MIT LICENSE
+//
+// Copyright (c) 2021-2021 CrazzzyPeter
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
 // -----------------------------------------------------------------------------
 
 {$REGION 'Examples'}
@@ -140,8 +161,6 @@
   end;
 }
 {$ENDREGION}
-
-// Remember: GTK is trash
 
 unit BitmapPixels;
 
@@ -363,7 +382,7 @@ implementation
 
 {$IFDEF FPC}
 uses
-  IntfGraphics, GraphType;
+  IntfGraphics, GraphType, LCLType, LCLIntf;
 {$ENDIF}
 
 function MakePixel(const R, G, B: Byte; const A: Byte): TPixel; inline;
@@ -489,10 +508,74 @@ begin
   end;
 end;
 
+{function MakeNativeGtk2RawImageDescription(const Width, Height: Integer): TRawImageDescription;
+begin
+  Result.Init;
+  Result.Format := ricfRGBA;
+  Result.Width := Width;
+  Result.Height := Height;
+  Result.Depth := 32;
+  Result.BitOrder := riboBitsInOrder;
+  Result.ByteOrder := riboLSBFirst;
+  Result.LineOrder := riloTopToBottom;
+  Result.LineEnd := rileDWordBoundary;
+  Result.BitsPerPixel := 32;
+  Result.RedPrec := 8;
+  Result.RedShift := 0;
+  Result.GreenPrec := 8;
+  Result.GreenShift := 8;
+  Result.BluePrec := 8;
+  Result.BlueShift := 16;
+  Result.AlphaPrec := 8;
+  Result.AlphaShift := 24;
+  Result.MaskBitsPerPixel := 0;
+  Result.MaskShift := 0;
+  Result.MaskLineEnd := rileByteBoundary;
+  Result.MaskBitOrder := riboBitsInOrder;
+  Result.PaletteColorCount := 0;
+  Result.PaletteBitsPerIndex := 0;
+  Result.PaletteShift := 0;
+  Result.PaletteLineEnd := rileTight;
+  Result.PaletteBitOrder := riboBitsInOrder;
+  Result.PaletteByteOrder := riboLSBFirst;
+end;}
+
+{$IF DEFINED(LCLGTK2) OR DEFINED(WINDOWS)}
+procedure WriteData(var BitmapData: TBitmapData);
+var
+  Position: Integer;
+  RawImage: TRawImage;
+begin
+  if BitmapData.FHasAlpha then
+  begin
+    RawImage.Init();
+    RawImage.Description.Init_BPP32_B8G8R8A8_BIO_TTB(BitmapData.FWidth, BitmapData.FHeight);
+    RawImage.Data := PByte(@(BitmapData.FData[0]));
+    RawImage.DataSize := BitmapData.FWidth * BitmapData.FHeight * SizeOf(TPixel);
+    BitmapData.FBitmap.LoadFromRawImage(RawImage, False);
+  end else
+  begin
+    RawImage.Init();
+    RawImage.Description.Init_BPP32_B8G8R8_BIO_TTB(BitmapData.FWidth, BitmapData.FHeight);
+    RawImage.DataSize := BitmapData.FWidth * BitmapData.FHeight * SizeOf(TPixel);
+    RawImage.CreateData(False);
+    try
+      for Position := 0 to BitmapData.FWidth * BitmapData.FHeight - 1 do
+      begin
+        PPixel(RawImage.Data)[Position] := BitmapData.Data[Position] and $00FFFFFF;
+      end;
+      BitmapData.FBitmap.LoadFromRawImage(RawImage, False);
+    finally
+      RawImage.FreeData();
+    end;
+  end;
+end;
+{$ELSE}
 procedure WriteData(var BitmapData: TBitmapData);
 var
   IntfImage: TLazIntfImage;
   X, Y, Position: Integer;
+  //RawImage: TRawImage;
 begin
   if BitmapData.FHasAlpha then
     IntfImage := TLazIntfImage.Create(BitmapData.FWidth, BitmapData.FHeight, [riqfRGB, riqfAlpha])
@@ -510,10 +593,13 @@ begin
       end;
     end;
     BitmapData.FBitmap.LoadFromIntfImage(IntfImage);
+    // IntfImage.GetRawImage(RawImage, True);
+    // BitmapData.FBitmap.LoadFromRawImage(RawImage, True);
   finally
     IntfImage.Free();
   end;
 end;
+{$ENDIF}
 
 procedure ReadDataRGB(var BitmapData: TBitmapData);
 var
@@ -892,7 +978,7 @@ end;
 type
   TDescriptionType = (DeskBGR, DeskRGB, DeskBGRA, DeskRGBA, DeskBGRN, DeskRGBN, DeskOther);
 
-function CalcDescriptionType(const Description: TRawImageDescription): TDescriptionType;
+function CalcDescriptionType(const Description: TRawImageDescription; const IsReadOnly: Boolean = False): TDescriptionType;
 begin
   Result := TDescriptionType.DeskOther;
   if Description.Format <> ricfRGBA then Exit;
@@ -904,7 +990,7 @@ begin
   {$IFDEF LCLGTK2}
   // LCLGTK2 image width workaround
   // ex: width = 16 - ok, width = 15 bug
-  if Description.MaskBitsPerPixel <> 0 then
+  if (not IsReadOnly) and (Description.MaskBitsPerPixel <> 0) then
     if Description.MaskLineEnd = rileByteBoundary then Exit;
   {$ENDIF}
 
@@ -982,7 +1068,7 @@ begin
 
   if (BitmapData.FData <> nil) and (BitmapData.FAccessMode in [TAccessMode.ReadWrite, TAccessMode.Read]) then
   begin
-    case CalcDescriptionType(BitmapData.FBitmap.RawImage.Description) of
+    case CalcDescriptionType(BitmapData.FBitmap.RawImage.Description, True) of
     TDescriptionType.DeskRGB:
       if BitmapData.FHasAlpha then
         ReadDataRGBOpaque(BitmapData)
