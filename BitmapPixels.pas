@@ -1441,6 +1441,9 @@ begin
   end;
 end;
 
+type
+  TOpenBitmap = class(TBitmap);
+
 procedure BitmapDataUnmap(var BitmapData: TBitmapData);
 begin
   try
@@ -1448,12 +1451,13 @@ begin
     begin
       if BitmapData.FHasAlpha then
       begin
-        BitmapData.FBitmap.PixelFormat := pf32bit;
-        if BitmapData.FBitmap.AlphaFormat = afIgnored then
+        if (BitmapData.FBitmap.PixelFormat = pf32bit) and (BitmapData.FBitmap.AlphaFormat = afIgnored) then
         begin
           WriteDataBGRA(BitmapData);// fast way
         end else
         begin
+          BitmapData.FBitmap.PixelFormat := pf32bit;
+          TOpenBitmap(BitmapData.FBitmap).FAlphaFormat := afPremultiplied;
           WriteDataPremultipliedBGRA(BitmapData);
         end;
       end else
